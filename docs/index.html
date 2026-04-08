@@ -1,0 +1,1138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>CashFlow – Home Page</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html,body{height:100%;background:#e8ecf2;font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased}
+    img{display:block;max-width:none}
+
+    /* ── Phone shell ── */
+    #app{
+      display:flex;justify-content:center;align-items:flex-start;
+      min-height:100vh;padding:24px 0 48px;
+    }
+    .phone{
+      width:402px;min-width:402px;
+      height:870px;
+      background:#fff;
+      border-radius:44px;
+      overflow:hidden;
+      box-shadow:0 32px 80px rgba(0,0,0,0.35),0 0 0 1px rgba(255,255,255,0.12);
+      display:flex;flex-direction:column;
+      position:relative;
+    }
+
+    /* ── Scroll container ── */
+    .scroll-root{
+      flex:1;overflow-y:scroll;overflow-x:hidden;
+      -webkit-overflow-scrolling:touch;
+    }
+    .scroll-root::-webkit-scrollbar{display:none}
+
+    /* ── Status bar ── */
+    .status-bar{
+      position:sticky;top:0;z-index:30;
+      width:402px;height:44px;
+      background:#fff;
+      flex-shrink:0;
+      display:flex;align-items:flex-end;justify-content:space-between;
+      padding:14px 12px;
+    }
+    .sb-time{width:33px;height:15px;flex-shrink:0}
+    .sb-time img{width:100%;height:100%}
+    .sb-icons{display:flex;align-items:center;gap:4px}
+    .sb-signal{width:20px;height:14px;position:relative;flex-shrink:0}
+    .sb-signal img{position:absolute;inset:0;width:100%;height:100%}
+    .sb-wifi{width:16px;height:14px;position:relative;flex-shrink:0}
+    .sb-wifi img{position:absolute;inset:0;width:100%;height:100%}
+    .sb-battery{width:25px;height:12px;position:relative;flex-shrink:0}
+    .sb-battery img{position:absolute;inset:0;width:100%;height:100%}
+
+    /* ── User profile section ── */
+    .user-profile{
+      background:#fff;
+      padding:15px 15px 12px;
+    }
+    .user-row{
+      display:flex;align-items:center;
+      height:46px;position:relative;
+    }
+    .user-name{
+      font-size:24px;font-weight:700;color:#333;
+      letter-spacing:-1.2px;line-height:1;
+    }
+    .user-notif-btn{
+      position:absolute;right:42px;top:3px;
+      width:40px;height:40px;border-radius:50%;
+      border:1px solid #d8d8d8;
+      display:flex;align-items:center;justify-content:center;
+      cursor:pointer;background:transparent;
+      overflow:visible;
+    }
+    .user-notif-btn img{width:22px;height:22px}
+    .notif-dot{
+      position:absolute;top:8px;right:-1px;
+      width:8px;height:8px;
+    }
+    .user-avatar{
+      position:absolute;right:0;top:3px;
+      width:40px;height:40px;border-radius:50%;
+      overflow:hidden;
+    }
+    .user-avatar img{width:100%;height:100%;object-fit:cover;object-position:center}
+    .expense-row{
+      display:flex;align-items:center;gap:8px;margin-top:8px;
+    }
+    .expense-text{
+      font-size:14px;font-weight:400;line-height:1.4;
+      background:linear-gradient(to right,#0b1e6c 24%,#153ad2);
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+    }
+    .expense-row img{width:20px;height:20px}
+
+    /* ── CashFlow compact (sticky in scroll) ── */
+    .cf-compact-sticky{
+      position:sticky;top:44px;z-index:20;
+      background:#fff;
+      border-radius:0 0 40px 40px;
+      box-shadow:0 10px 12px 0 rgba(208,222,255,0.5);
+      padding:24px 16px;
+      display:flex;align-items:center;gap:11px;
+    }
+    .cf-info{flex:1;min-width:0}
+    .cf-label{font-size:12px;color:#626262;font-weight:400;line-height:1.4}
+    .cf-amount{font-size:28px;font-weight:700;color:#0a2f91;line-height:1.4}
+    .cf-trend{
+      display:flex;align-items:center;gap:4px;
+      font-size:12px;font-weight:500;color:#008851;margin-top:4px;
+    }
+    .cf-chart-btn{
+      width:50px;height:50px;flex-shrink:0;
+      background:none;border:none;padding:0;cursor:pointer;
+    }
+    .cf-chart-btn svg{width:50px;height:50px;display:block}
+
+    /* ── CashFlow expanded OVERLAY ── */
+    @keyframes sheetExpand {
+      from { clip-path: inset(0 0 100% 0 round 0); }
+      to   { clip-path: inset(0 0 0%   0 round 0); }
+    }
+    @keyframes sheetCollapse {
+      from { clip-path: inset(0 0 0%   0 round 0); }
+      to   { clip-path: inset(0 0 100% 0 round 0); }
+    }
+    @keyframes bgSweep {
+      from { clip-path: inset(0 0 100% 0); opacity:0; }
+      to   { clip-path: inset(0 0 0%   0); opacity:1; }
+    }
+    @keyframes sankeyRise {
+      from { opacity:0; transform:translateY(40px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    @keyframes pillPop {
+      0%   { opacity:0; transform:scale(0.6) translateY(8px); }
+      70%  { opacity:1; transform:scale(1.08) translateY(-2px); }
+      100% { transform:scale(1) translateY(0); }
+    }
+
+    .cf-overlay{
+      position:absolute;
+      top:44px;
+      left:0;right:0;
+      bottom:99px;
+      z-index:50;
+      background:#fff;
+      display:flex;
+      flex-direction:column;
+      overflow:hidden;
+      clip-path: inset(0 0 100% 0 round 0);
+      pointer-events:none;
+    }
+    .cf-overlay.open{
+      pointer-events:auto;
+      animation: sheetExpand 0.42s cubic-bezier(0.22,1,0.36,1) forwards;
+    }
+    .cf-overlay.open .cf-chart-container{
+      animation: bgSweep 0.38s cubic-bezier(0.22,1,0.36,1) 0.1s both;
+    }
+    .cf-overlay.open .cf-sankey-img{
+      animation: sankeyRise 0.45s cubic-bezier(0.34,1.56,0.64,1) 0.22s both;
+    }
+    .cf-overlay.open .cf-tab-pill:nth-child(1){ animation: pillPop 0.35s cubic-bezier(0.34,1.56,0.64,1) 0.32s both; }
+    .cf-overlay.open .cf-tab-pill:nth-child(2){ animation: pillPop 0.35s cubic-bezier(0.34,1.56,0.64,1) 0.38s both; }
+    .cf-overlay.open .cf-tab-pill:nth-child(3){ animation: pillPop 0.35s cubic-bezier(0.34,1.56,0.64,1) 0.44s both; }
+    .cf-overlay.open .cf-tab-pill:nth-child(4){ animation: pillPop 0.35s cubic-bezier(0.34,1.56,0.64,1) 0.50s both; }
+    .cf-overlay.closing{
+      pointer-events:none;
+      animation: sheetCollapse 0.32s cubic-bezier(0.55,0,1,0.45) forwards;
+    }
+
+    /* CF header within overlay */
+    .cf-ov-header{
+      padding:0 16px 16px;
+      background:#fff;
+      display:flex;align-items:center;gap:11px;
+    }
+
+    /* Dark chart body — fills remaining flex space, no scroll */
+    .cf-ov-body{
+      flex:1;
+      overflow:hidden;
+      position:relative;
+    }
+
+    /* Filter pills */
+    .cf-tab-pill{
+      height:32px;padding:6px 16px;
+      border-radius:40px;border:.5px solid #5b8aff;
+      background:transparent;
+      color:#fff;font-size:12px;font-family:'Inter',sans-serif;
+      letter-spacing:-0.3px;cursor:pointer;white-space:nowrap;
+    }
+    .cf-tab-pill.active{background:#1b346f}
+
+    /* ── Tab switcher ── */
+    .tab-bar{
+      display:flex;align-items:center;gap:8px;
+      padding:16px 16px 0;
+      background:#fff;
+    }
+    .tab-item{
+      height:40px;border-radius:8px;
+      display:flex;align-items:center;justify-content:center;
+      cursor:pointer;border:none;
+      font-size:14px;letter-spacing:-0.5px;
+      transition:all .15s;
+    }
+    .tab-item.active{
+      background:linear-gradient(90deg,#003cc8,#003cc8);
+      color:#fff;font-weight:700;width:118px;
+    }
+    .tab-item.inactive{
+      background:#ecf2ff;color:#003cc8;font-weight:400;
+      flex:1;
+    }
+
+    /* ── Cards container ── */
+    .cards{
+      background:#fff;
+      padding:16px 16px 0;
+      display:flex;flex-direction:column;gap:24px;
+    }
+
+    /* ── Onboarding widget ── */
+    .onboarding-card{
+      width:370px;
+      background:#fff;
+      border:1px solid #cddcff;
+      border-radius:8px;
+      box-shadow:0 4px 8px rgba(208,222,255,0.5);
+      padding:16px 24px;
+      display:flex;align-items:center;justify-content:space-between;
+      cursor:pointer;
+    }
+    .ob-left{display:flex;align-items:center;gap:8px}
+    .ob-ring{position:relative;width:36px;height:36px;flex-shrink:0}
+    .ob-ring img{position:absolute;inset:0;width:100%;height:100%}
+    .ob-fraction{
+      position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+      font-size:9px;color:#ff7700;font-weight:400;line-height:1;
+      letter-spacing:-0.45px;
+      display:flex;align-items:baseline;gap:0;
+    }
+    .ob-fraction .num{font-size:15px;font-weight:500}
+    .ob-text{display:flex;flex-direction:column;gap:4px}
+    .ob-tag{font-size:10px;color:#ff7700;font-weight:500;letter-spacing:-0.3px}
+    .ob-title{font-size:14px;color:#000;font-weight:400;letter-spacing:-0.3px}
+    .ob-arrow{width:25px;height:25px;transform:rotate(180deg)}
+
+    /* ── Spending Limit box ── */
+    .spend-box{
+      width:370px;height:211px;
+      background:#fff;border:1px solid #cddcff;border-radius:8px;
+      box-shadow:0 2px 8px rgba(185,202,242,0.5);
+      position:relative;padding:24px 20px;
+      display:flex;flex-direction:column;gap:12px;
+    }
+    .spend-icon-row{
+      display:flex;align-items:flex-start;gap:0;height:44px;position:relative;
+    }
+    .spend-icon{width:34px;height:34px;flex-shrink:0}
+    .spend-amount-block{
+      position:absolute;left:40px;top:0;
+      display:flex;align-items:baseline;gap:16px;
+      color:#0c1f71;
+    }
+    .spend-num{font-size:28px;font-weight:700;line-height:normal;letter-spacing:-0.2px}
+    .spend-unit{font-size:12px;font-weight:400}
+    .spend-label{font-size:16px;color:#0c1f71;font-weight:400}
+    .spend-desc{
+      font-size:12px;color:#565656;letter-spacing:-0.15px;line-height:1.4;
+    }
+    .spend-btn{
+      display:flex;align-items:center;gap:8px;
+      background:#f8faff;border:1px solid #003cc8;border-radius:8px;
+      padding:12px 24px;cursor:pointer;width:100%;
+    }
+    .spend-btn span{
+      flex:1;font-size:14px;font-weight:600;color:#003cc8;
+      text-transform:uppercase;line-height:16px;text-align:left;
+    }
+    .spend-btn img{width:24px;height:24px;flex-shrink:0}
+    .spend-badge{
+      position:absolute;top:21px;right:20px;
+      background:rgba(255,174,48,0.2);
+      border-radius:40px;padding:4px 8px;
+      font-size:10px;color:#9c5f00;letter-spacing:-0.3px;
+    }
+
+    /* ── Inflow Outflow card ── */
+    .inflow-card{
+      width:370px;
+      border-radius:8px;
+      background:linear-gradient(113.65deg,#2c98f1 1.3%,#234bdf 47.33%,#3430aa 100%);
+      box-shadow:0 12px 24px rgba(0,0,0,0.08);
+      padding:20px;
+      display:flex;flex-direction:column;gap:24px;
+    }
+    .inflow-header{
+      display:flex;align-items:flex-start;justify-content:space-between;
+    }
+    .inflow-title{font-size:20px;font-weight:600;color:#fff;line-height:20px;margin-bottom:4px}
+    .inflow-sub{font-size:14px;color:#fff;font-weight:400;line-height:20px}
+    .inflow-chevron{
+      width:6px;height:12px;transform:rotate(180deg);margin-top:4px;
+    }
+    /* Inflow/Outflow stat tiles */
+    .io-tiles{display:flex;gap:12px}
+    .io-tile{
+      flex:1;background:rgba(255,255,255,0.1);
+      border:1px solid rgba(255,255,255,0.3);
+      border-radius:8px;padding:12px;
+      display:flex;align-items:flex-start;justify-content:space-between;
+    }
+    .io-label{font-size:16px;color:rgba(255,255,255,0.9);line-height:16px;margin-bottom:6px}
+    .io-dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-left:6px}
+    .io-amount{font-size:18px;font-weight:700;color:#fff;line-height:18px}
+    .io-arrow-circle{
+      width:24px;height:24px;border-radius:60px;
+      display:flex;align-items:center;justify-content:center;
+    }
+    .io-arrow-circle img{width:24px;height:24px}
+    /* Chart area */
+    .chart-area{
+      height:256px;position:relative;overflow:hidden;width:100%;
+    }
+    .chart-area img{position:absolute}
+    .chart-bg{inset:0;width:100%;height:100%;object-fit:fill}
+    /* AI insight + button */
+    .ai-container{
+      background:rgba(255,255,255,0.15);
+      border-radius:8px;padding:16px;
+      display:flex;flex-direction:column;gap:12px;
+    }
+    .ai-row{display:flex;gap:8px;align-items:flex-start}
+    .ai-icon-circle{
+      width:24px;height:24px;border-radius:50%;
+      background:#fff;display:flex;align-items:center;justify-content:center;
+      flex-shrink:0;
+    }
+    .ai-icon-circle img{width:14px;height:14px}
+    .ai-title{font-size:12px;font-weight:600;color:#fff;line-height:16px;margin-bottom:4px}
+    .ai-text{font-size:12px;color:rgba(255,255,255,0.9);line-height:18px}
+    .view-btn{
+      background:#fff;border:none;border-radius:8px;
+      box-shadow:0 2px 4px rgba(0,0,0,0.1);
+      height:36px;width:100%;
+      display:flex;align-items:center;justify-content:center;gap:6px;
+      cursor:pointer;
+    }
+    .view-btn span{font-size:14px;font-weight:600;color:#003cc8;line-height:16px}
+    .view-btn img{width:16px;height:16px}
+
+    /* ── Expense Categories box ── */
+    .expense-box{
+      width:370px;height:695px;
+      background:#fff;border:1px solid #cddcff;border-radius:8px;
+      box-shadow:0 2px 8px rgba(185,202,242,0.5);
+      position:relative;
+    }
+    .expense-header{
+      position:absolute;left:19px;top:19px;width:330px;
+    }
+    .expense-title-row{
+      display:flex;align-items:center;gap:4px;margin-bottom:8px;
+    }
+    .expense-title{font-size:20px;font-weight:600;color:#1e1e1e;line-height:20px}
+    .expense-arrow{width:24px;height:24px;transform:rotate(180deg)}
+    .expense-subtitle{font-size:14px;color:#565656;line-height:16px}
+    /* Donut chart images */
+    .donut-layer{position:absolute}
+    /* Amount + badge */
+    .expense-total{
+      position:absolute;left:129px;top:163px;
+      font-size:32px;font-weight:600;color:#1e1e1e;line-height:20px;
+    }
+    .expense-growth{
+      position:absolute;left:134px;top:199px;
+      background:#ecf1fe;border-radius:50px;
+      padding:4px 14px;
+      display:flex;align-items:center;gap:8px;
+    }
+    .expense-growth img{width:11px;height:6px}
+    .expense-growth span{font-size:12px;font-weight:700;color:#003cc8;line-height:18px}
+    /* Category tiles */
+    .cat-tiles-row{
+      position:absolute;left:19px;width:330px;
+      display:flex;gap:12px;
+    }
+    .cat-tile{
+      flex:1;border-radius:8px;padding:12px;
+      display:flex;gap:12px;align-items:flex-start;
+    }
+    .cat-dot{width:14px;height:14px;flex-shrink:0}
+    .cat-label{font-size:14px;color:#45556c;line-height:16px;margin-bottom:4px}
+    .cat-amount{font-size:18px;font-weight:700;color:#0a1931;letter-spacing:-0.44px;line-height:20px;margin-bottom:4px}
+    .cat-pct{font-size:12px;color:#62748e;line-height:16px}
+    /* AI insight panel */
+    .ai-panel{
+      position:absolute;left:19px;width:330px;
+      background:#f8faff;border:.833px solid #e0e7ff;border-radius:8px;
+      padding:16px;
+    }
+    .ai-panel-row{display:flex;gap:8px;align-items:flex-start;margin-bottom:12px}
+    .ai-blue-circle{
+      width:24px;height:24px;border-radius:50%;
+      background:#003cc8;display:flex;align-items:center;justify-content:center;flex-shrink:0;
+    }
+    .ai-blue-circle img{width:14px;height:14px}
+    .ai-panel-title{font-size:12px;font-weight:500;color:#003cc8;line-height:16px;margin-bottom:4px}
+    .ai-panel-text{font-size:12px;color:#1e1e1e;line-height:18px}
+    .budget-btn{
+      background:#003cc8;border:none;border-radius:8px;
+      height:36px;width:100%;
+      display:flex;align-items:center;justify-content:center;gap:6px;
+      cursor:pointer;
+    }
+    .budget-btn span{font-size:14px;font-weight:600;color:#fff;line-height:16px}
+    .budget-btn img{width:16px;height:16px}
+
+    /* ── Bills box ── */
+    .bills-box{
+      width:370px;height:214px;
+      background:#fff;border:1px solid #cddcff;border-radius:8px;
+      box-shadow:0 2px 8px rgba(185,202,242,0.5);
+      position:relative;
+    }
+    .bills-icon-row{
+      position:absolute;left:19px;top:21px;width:330px;height:44px;
+    }
+    .bills-icon{position:absolute;left:-3px;top:0;width:32px;height:32px}
+    .bills-amount{
+      position:absolute;left:62px;top:0;
+      font-size:24px;font-weight:700;color:#0c1f71;letter-spacing:-0.15px;
+      line-height:1.4;
+    }
+    .bills-sub{
+      position:absolute;left:62px;top:28px;
+      font-size:12px;color:#0c1f71;letter-spacing:-0.15px;
+    }
+    .bills-desc{
+      position:absolute;left:19px;top:68px;width:330px;
+      font-size:12px;color:#565656;letter-spacing:-0.15px;line-height:1.4;
+    }
+    .bills-btn{
+      position:absolute;left:19px;top:147px;width:330px;height:48px;
+      background:#f8faff;border:1px solid #003cc8;border-radius:8px;
+      display:flex;align-items:center;padding:12px 24px;gap:8px;cursor:pointer;
+    }
+    .bills-btn span{
+      flex:1;font-size:14px;font-weight:500;color:#003cc8;
+      text-transform:uppercase;line-height:16px;
+    }
+    .bills-btn img{width:24px;height:24px}
+    .bills-badge{
+      position:absolute;left:247px;top:21px;
+      background:rgba(255,48,48,0.2);border-radius:40px;
+      padding:6px 16px;
+      font-size:14px;color:#9c0000;letter-spacing:-0.3px;
+    }
+
+    /* ── 3 Months Rewind ── */
+    .rewind-card{
+      width:370px;height:322px;
+      border-radius:8px;overflow:hidden;
+      position:relative;cursor:pointer;
+    }
+    .rewind-bg-base{
+      position:absolute;inset:0;background:#2044d8;
+    }
+    .rewind-bg-img{
+      position:absolute;inset:0;opacity:0.7;overflow:hidden;
+    }
+    .rewind-bg-img img{
+      position:absolute;height:100%;
+      left:-27.49%;top:-0.14%;
+      width:154.97%;max-width:none;
+    }
+    .rewind-period{
+      position:absolute;left:270px;top:25px;
+      font-size:16px;color:rgba(255,255,255,0.4);line-height:16px;
+    }
+    .rewind-tag{
+      position:absolute;left:24px;top:25px;
+      font-size:16px;color:rgba(255,255,255,0.75);letter-spacing:0.5px;line-height:16px;
+    }
+    .rewind-confetti{position:absolute;left:116px;top:58px;width:32px;height:32px}
+    .rewind-confetti img{width:100%;height:100%;object-fit:contain}
+    .rewind-saved-label{
+      position:absolute;left:24px;top:67px;
+      font-size:16px;color:#fff;line-height:normal;
+    }
+    .rewind-amount{
+      position:absolute;left:24px;top:107px;
+      font-size:36px;font-weight:700;color:#fff;line-height:normal;
+    }
+    .rewind-sub{
+      position:absolute;left:24px;top:143px;
+      font-size:12px;color:#fff;line-height:16px;
+    }
+    /* Stat tiles */
+    .rewind-stat{
+      position:absolute;height:67px;width:102px;
+      border-radius:8px;background:rgba(255,255,255,0.1);
+      border:1px solid rgba(255,255,255,0);
+      top:186px;
+    }
+    .rewind-stat-val{
+      position:absolute;top:15px;left:14px;
+      font-size:16px;font-weight:700;color:#fff;
+    }
+    .rewind-stat-label{
+      position:absolute;top:40px;left:14px;
+      font-size:10px;color:rgba(255,255,255,0.8);
+    }
+    /* CTA */
+    .rewind-cta-bg{
+      position:absolute;left:0;bottom:0;width:370px;height:45px;
+      background:linear-gradient(to right,rgba(30,30,30,0.25),rgba(132,132,132,0.25));
+      box-shadow:0 1px 6.6px rgba(0,0,0,0.25);
+    }
+    .rewind-cta-text{
+      position:absolute;left:69px;bottom:14px;
+      font-size:13px;font-weight:600;color:#fff;
+      text-transform:uppercase;letter-spacing:0;line-height:16px;text-align:center;
+      width:206px;
+    }
+    .rewind-cta-icon{
+      position:absolute;right:24px;bottom:14px;
+      width:16px;height:16px;
+    }
+    .rewind-cta-icon img{width:100%;height:100%}
+
+    /* ── Bottom nav ── */
+    .bottom-nav{
+      flex-shrink:0;height:99px;
+      background:#000;
+      position:relative;overflow:hidden;
+      backdrop-filter:blur(17px);
+    }
+    .nav-pill-row{
+      position:absolute;left:16px;top:0;width:371px;
+      padding:13px 24px;
+      overflow:hidden;border-radius:100px;
+      display:flex;align-items:center;justify-content:space-between;
+      background:rgba(0,0,0,0.01);
+      backdrop-filter:blur(22px);
+    }
+    .nav-icon{width:24px;height:24px;cursor:pointer}
+    .nav-icon img{width:100%;height:100%}
+    .nav-active-pill{
+      background:#003cc8;border-radius:100px;
+      padding:8px 12px;
+      display:flex;align-items:center;gap:4px;cursor:pointer;
+    }
+    .nav-active-pill img{width:24px;height:24px}
+    .nav-active-pill span{
+      font-size:12px;font-weight:700;color:#fff;
+      letter-spacing:0.008px;line-height:13px;
+    }
+    .home-indicator{
+      position:absolute;left:50%;bottom:8px;
+      transform:translateX(-50%);
+      width:134px;height:5px;
+      background:#d9d9d9;border-radius:100px;
+    }
+
+    /* bottom spacer */
+    .bottom-spacer{height:24px}
+  </style>
+</head>
+<body>
+<div id="app">
+  <div class="phone">
+
+    <!-- SCROLL ROOT -->
+    <div class="scroll-root" id="scrollRoot">
+
+      <!-- STATUS BAR — Figma component 1589:8630 -->
+      <div class="status-bar">
+        <!-- 9:41 time image, left side -->
+        <div class="sb-time">
+          <img src="https://www.figma.com/api/mcp/asset/1eb0b19b-4580-4559-9d70-e2c711877488" alt="9:41"/>
+        </div>
+        <!-- Status icons: signal + wifi + battery, right side -->
+        <div class="sb-icons">
+          <div class="sb-signal">
+            <img src="https://www.figma.com/api/mcp/asset/bc64e99f-fba6-4cb9-981b-37bc21748e8a" alt="signal"/>
+          </div>
+          <div class="sb-wifi">
+            <img src="https://www.figma.com/api/mcp/asset/3132872b-b0fd-4c61-b227-39e303b17871" alt="wifi"/>
+          </div>
+          <div class="sb-battery">
+            <img src="https://www.figma.com/api/mcp/asset/d17090ea-a8c2-4afe-be3e-c2a3a3636e3a" alt="battery"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- USER PROFILE -->
+      <div class="user-profile">
+        <div class="user-row">
+          <div class="user-name">Hey, Alex! 👋</div>
+          <button class="user-notif-btn" id="notifBtn" style="position:absolute;right:42px;top:3px">
+            <img src="https://www.figma.com/api/mcp/asset/07993774-edbf-4f0d-89ac-af420a7f7e7e" alt="notification"/>
+            <img class="notif-dot"
+              src="https://www.figma.com/api/mcp/asset/7f5defc2-65b2-420c-8d03-02463c0b2c06"
+              alt="" style="position:absolute;top:8px;right:0px;width:8px;height:8px"/>
+          </button>
+          <div class="user-avatar" style="position:absolute;right:0;top:3px">
+            <img src="https://www.figma.com/api/mcp/asset/4769cd81-f6fe-4bd0-a063-372c596e3b7a" alt="avatar"/>
+          </div>
+        </div>
+        <div class="expense-row">
+          <span class="expense-text">Your expense for today is <strong>$45</strong></span>
+          <img src="https://www.figma.com/api/mcp/asset/ff8c8aa8-f2fa-48ae-9822-2b82e600c81b" alt="" style="width:20px;height:20px"/>
+        </div>
+      </div>
+
+      <!-- CASHFLOW COMPACT (sticky below status bar) — Figma: 1591:9266 -->
+      <div class="cf-compact-sticky" id="cfCompact">
+        <div class="cf-info">
+          <div class="cf-label">Net Wealth</div>
+          <div class="cf-amount">$1,23,850</div>
+          <div class="cf-trend">
+            <!-- Rotated → becomes ↑ -->
+            <span style="display:inline-flex;align-items:center;transform:rotate(-90deg);font-size:12px;line-height:1">→</span>
+            <span>$3,210 this month</span>
+          </div>
+        </div>
+        <button class="cf-chart-btn" id="cfExpandBtn">
+          <svg width="50" height="50" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- white circle with blue border -->
+            <circle cx="25" cy="25" r="24.5" fill="white" stroke="#AEC1ED" stroke-width="1"/>
+            <!-- left vertical bar: inset 26%80%26%20% → x=10, y=13, h=24 -->
+            <line x1="11" y1="13" x2="11" y2="37" stroke="#003CC8" stroke-width="3" stroke-linecap="round"/>
+            <!-- light blue curve (Vector 281, #AAC3FF): inset top:34%=17 left:28%=14 right:24%=12 bottom:40%=20 → rect(14,17,24,13)
+                 path mapped: M(14,19) → C(18,19)(26,19.4)(27.4,22.3) C(29,25.7)(34.6,28)(38,28) -->
+            <path d="M14 19 C18.3 19 26 19.4 27.4 22.3 C29.1 25.7 34.6 28 38 28" stroke="#AAC3FF" stroke-width="5" stroke-linecap="round" fill="none"/>
+            <!-- main blue curve (Vector 284, #003CC8): inset top:38%=19 left:28%=14 right:24%=12 bottom:32%=16 → rect(14,19,24,15)
+                 path mapped: M(14,20.9) → C(18.3,20.9)(24.5,21.25)(27.4,25) C(30.5,28.8)(34.6,32.1)(38,32.1) -->
+            <path d="M14 21 C18.3 21 24.5 21.3 27.4 25 C30.5 28.8 34.6 32 38 32" stroke="#003CC8" stroke-width="4" stroke-linecap="round" fill="none"/>
+            <!-- right top bar: inset 28%22%52%78% → x=39, y=14, h=9 -->
+            <line x1="39" y1="14" x2="39" y2="23" stroke="#003CC8" stroke-width="3" stroke-linecap="round"/>
+            <!-- right bottom bar: inset 50%22%26%78% → x=39, y=25, h=12 -->
+            <line x1="39" y1="25" x2="39" y2="37" stroke="#003CC8" stroke-width="3" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- TAB BAR + CARDS -->
+      <div style="background:#fff">
+        <!-- Tab switcher -->
+        <div class="tab-bar" id="tabBar">
+          <button class="tab-item active" id="tab0" onclick="switchTab(0)">Cashflow</button>
+          <button class="tab-item inactive" id="tab1" onclick="switchTab(1)">Goals</button>
+          <button class="tab-item inactive" id="tab2" onclick="switchTab(2)">Wellness</button>
+        </div>
+
+        <!-- Cards -->
+        <div class="cards" id="tabContent0">
+
+          <!-- Onboarding -->
+          <div class="onboarding-card">
+            <div class="ob-left">
+              <div class="ob-ring">
+                <img src="https://www.figma.com/api/mcp/asset/884fa7f9-8751-43ef-a219-888e967a9113" alt=""/>
+                <img src="https://www.figma.com/api/mcp/asset/53af67e9-1009-4726-af3c-ba01f09ffa2e" alt=""/>
+                <img src="https://www.figma.com/api/mcp/asset/85439512-d4d2-46f6-a0bf-64f8182f2265" alt="" style="position:absolute;left:0;right:0;bottom:0;top:0;clip-path:inset(0 50% 0 0)"/>
+                <div class="ob-fraction">
+                  <span class="num">2</span><span>/4</span>
+                </div>
+              </div>
+              <div class="ob-text">
+                <div class="ob-tag">Onboarding </div>
+                <div class="ob-title">Complete Your Onboarding Now</div>
+              </div>
+            </div>
+            <div style="transform:rotate(180deg);width:25px;height:25px;flex-shrink:0">
+              <img src="https://www.figma.com/api/mcp/asset/41c5072e-6617-4da3-894b-e9f089c83524" style="width:25px;height:25px" alt=""/>
+            </div>
+          </div>
+
+          <!-- Spending Limit -->
+          <div class="spend-box">
+            <div class="spend-icon-row">
+              <img class="spend-icon"
+                src="https://www.figma.com/api/mcp/asset/64461a7a-87b1-4525-8239-6adfc87c498f" alt=""/>
+              <div class="spend-amount-block">
+                <div>
+                  <div class="spend-num">$120</div>
+                  <div style="font-size:12px;color:#0c1f71;font-weight:400">/week</div>
+                </div>
+                <div class="spend-label">Spending limit for today</div>
+              </div>
+            </div>
+            <div class="spend-desc">
+              Your recommended spending limit for this week is $120. Staying within this allows you to save 15-20% more this month to fast-track your Wealth Goals.
+            </div>
+            <button class="spend-btn">
+              <span>Set Spending Limit</span>
+              <img src="https://www.figma.com/api/mcp/asset/3cdd491f-46d8-4b78-bf9c-64c9d32100be" alt=""/>
+            </button>
+            <div class="spend-badge">Suggested</div>
+          </div>
+
+          <!-- Inflow vs Outflow -->
+          <div class="inflow-card">
+            <!-- Header -->
+            <div class="inflow-header">
+              <div>
+                <div class="inflow-title">Inflow vs. Outflow</div>
+                <div class="inflow-sub">February month summary details</div>
+              </div>
+              <svg class="inflow-chevron" width="6" height="12" viewBox="0 0 6 12" fill="none">
+                <path d="M5 1L1 6L5 11" stroke="white" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+              </svg>
+            </div>
+
+            <!-- Stat tiles -->
+            <div class="io-tiles">
+              <div class="io-tile">
+                <div>
+                  <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+                    <span class="io-label">Inflow</span>
+                    <span class="io-dot" style="background:#14c0ff"></span>
+                  </div>
+                  <div class="io-amount">$3,000</div>
+                </div>
+                <div style="width:34px;height:34px;display:flex;align-items:center;justify-content:center">
+                  <div style="transform:rotate(-135deg)">
+                    <div class="io-arrow-circle" style="background:#0eb874">
+                      <img src="https://www.figma.com/api/mcp/asset/baa02bca-be7e-4a42-b303-00a596d600db" alt=""/>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="io-tile">
+                <div>
+                  <div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">
+                    <span class="io-label">Outflow</span>
+                    <span class="io-dot" style="background:#ff6a6a"></span>
+                  </div>
+                  <div class="io-amount">$3,600</div>
+                </div>
+                <div style="width:34px;height:34px;display:flex;align-items:center;justify-content:center">
+                  <div style="transform:rotate(45deg)">
+                    <div class="io-arrow-circle" style="background:#cf2a36">
+                      <img src="https://www.figma.com/api/mcp/asset/baa02bca-be7e-4a42-b303-00a596d600db" alt=""/>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Chart -->
+            <div class="chart-area">
+              <!-- Grid lines background (invisible, chart images provide the visual) -->
+              <!-- Path fills and lines from Figma assets -->
+              <img src="https://www.figma.com/api/mcp/asset/c4fb1452-154c-43e4-adbf-286448efd56b"
+                style="position:absolute;bottom:22%;left:0;right:0.2%;top:65%;width:100%;height:auto" alt=""/>
+              <img src="https://www.figma.com/api/mcp/asset/3a87c0c9-2551-4a73-9bdd-b6b7b1a46978"
+                style="position:absolute;top:39%;left:0;right:0.2%;width:100%;height:auto" alt=""/>
+              <img src="https://www.figma.com/api/mcp/asset/1b7781c1-cab7-430d-8aa5-62627aead765"
+                style="position:absolute;top:39%;bottom:25%;left:0;width:100%;height:auto" alt=""/>
+              <!-- Tooltip dot + rectangle -->
+              <img src="https://www.figma.com/api/mcp/asset/2087c79a-9333-4333-8787-c1c5b949fb1a"
+                style="position:absolute;top:36%;left:27%;width:10px;height:10px;display:none" alt=""/>
+              <img src="https://www.figma.com/api/mcp/asset/b16ed379-be67-4a7b-ac2f-761cf1bc366f"
+                style="position:absolute;top:11%;left:50%;width:auto;height:auto;display:none" alt=""/>
+              <!-- Tooltip label -->
+              <div style="position:absolute;left:141px;top:29px;color:#fff;font-size:12px;line-height:normal">
+                <span>Income: </span><strong>$400</strong><br/>
+                <span>Outflow: </span><strong>$200</strong>
+              </div>
+              <!-- X-axis labels -->
+              <div style="position:absolute;bottom:0;left:8.83%;right:2.21%;height:32px;display:flex;align-items:flex-end;gap:0">
+                <div style="flex:1;text-align:center;font-size:11px;color:rgba(204,253,247,0.7)">Feb<br/>01</div>
+                <div style="flex:1;text-align:center;font-size:11px;color:rgba(204,253,247,0.7)">Feb 05</div>
+                <div style="flex:1;text-align:center;font-size:11px;color:rgba(204,253,247,0.7)">Feb 10</div>
+                <div style="flex:1;text-align:center;font-size:11px;color:rgba(204,253,247,0.7)">Feb 15</div>
+                <div style="flex:1;text-align:center;font-size:11px;color:rgba(204,253,247,0.7)">Feb 20</div>
+                <div style="flex:1;text-align:center;font-size:11px;color:rgba(204,253,247,0.7)">Feb 25</div>
+              </div>
+              <!-- Y-axis labels -->
+              <div style="position:absolute;left:0;top:1%;bottom:14%;width:11%;display:flex;flex-direction:column;justify-content:space-between;align-items:flex-end;padding-right:4px">
+                <span style="font-size:11px;color:rgba(204,253,247,0.7)">1200</span>
+                <span style="font-size:11px;color:rgba(204,253,247,0.7)">900</span>
+                <span style="font-size:11px;color:rgba(204,253,247,0.7)">600</span>
+                <span style="font-size:11px;color:rgba(204,253,247,0.7)">300</span>
+                <span style="font-size:11px;color:rgba(204,253,247,0.7)">0</span>
+              </div>
+            </div>
+
+            <!-- AI insight + view button -->
+            <div class="ai-container">
+              <div class="ai-row">
+                <div class="ai-icon-circle">
+                  <img src="https://www.figma.com/api/mcp/asset/dc895e43-7adf-4a55-98aa-074522e8842f" alt=""/>
+                </div>
+                <div>
+                  <div class="ai-title">AI Insight</div>
+                  <div class="ai-text">Your outflow exceeded income by $600 this month. Consider reducing discretionary spending to improve your cash flow.</div>
+                </div>
+              </div>
+              <button class="view-btn">
+                <span>View Spending Breakdown</span>
+                <img src="https://www.figma.com/api/mcp/asset/21768451-8a24-4377-9916-49119abbc7fa" alt=""/>
+              </button>
+            </div>
+          </div>
+
+          <!-- Expense Categories -->
+          <div class="expense-box">
+            <div class="expense-header">
+              <div class="expense-title-row">
+                <div class="expense-title">Expense Categories</div>
+                <img class="expense-arrow"
+                  src="https://www.figma.com/api/mcp/asset/0de49b16-806c-4730-b109-dbea06504150"
+                  style="width:24px;height:24px" alt=""/>
+              </div>
+              <div class="expense-subtitle">Total amount spent this month</div>
+            </div>
+
+            <!-- Donut chart (stacked images) -->
+            <div style="position:absolute;left:141px;top:99px;width:36px;height:22px">
+              <img src="https://www.figma.com/api/mcp/asset/5eef703b-cf93-4904-aa50-0d5e93251606" style="width:100%;height:100%" alt=""/>
+            </div>
+            <div style="position:absolute;left:102px;top:111px;width:39px;height:38px">
+              <img src="https://www.figma.com/api/mcp/asset/398a640c-c610-49de-941e-1215aae41ff9" style="width:100%;height:100%" alt=""/>
+            </div>
+            <div style="position:absolute;left:87px;top:147px;width:44px;height:115px">
+              <img src="https://www.figma.com/api/mcp/asset/9c069df5-3b17-48db-9009-44b5725b7e24" style="width:100%;height:100%" alt=""/>
+            </div>
+            <div style="position:absolute;left:129px;top:99px;width:141px;height:183px">
+              <img src="https://www.figma.com/api/mcp/asset/0cd6c6c6-4cae-4506-8966-de6d843eff0f" style="width:100%;height:100%" alt=""/>
+            </div>
+
+            <!-- Total amount -->
+            <div class="expense-total">$1,120</div>
+
+            <!-- Growth badge -->
+            <div class="expense-growth">
+              <div style="transform:scaleY(-1)">
+                <img src="https://www.figma.com/api/mcp/asset/c669083a-cfa7-4837-b46b-f68c79824c1d"
+                  style="width:11px;height:6px" alt=""/>
+              </div>
+              <span>+12.5%</span>
+            </div>
+
+            <!-- Category tiles row 1 -->
+            <div class="cat-tiles-row" style="top:323px">
+              <div class="cat-tile" style="background:rgba(30,64,175,0.12)">
+                <img class="cat-dot"
+                  src="https://www.figma.com/api/mcp/asset/15224cf0-3d7d-4ee5-a908-987b8c9ca478" alt=""/>
+                <div>
+                  <div class="cat-label">Fixed</div>
+                  <div class="cat-amount">$580</div>
+                  <div class="cat-pct">52% of total</div>
+                </div>
+              </div>
+              <div class="cat-tile" style="background:rgba(101,145,252,0.12)">
+                <img class="cat-dot"
+                  src="https://www.figma.com/api/mcp/asset/3fb51185-06ab-48f4-a365-4b6a2f9853f5" alt=""/>
+                <div>
+                  <div class="cat-label">Discretionary</div>
+                  <div class="cat-amount">$310</div>
+                  <div class="cat-pct">28% of total</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Category tiles row 2 -->
+            <div class="cat-tiles-row" style="top:418px">
+              <div class="cat-tile" style="background:rgba(151,195,255,0.12)">
+                <img class="cat-dot"
+                  src="https://www.figma.com/api/mcp/asset/f75b4964-a798-46a4-a91c-0dbe76a3bfac" alt=""/>
+                <div>
+                  <div class="cat-label">Ocassional</div>
+                  <div class="cat-amount">$140</div>
+                  <div class="cat-pct">12% of total</div>
+                </div>
+              </div>
+              <div class="cat-tile" style="background:rgba(239,68,68,0.12)">
+                <img class="cat-dot"
+                  src="https://www.figma.com/api/mcp/asset/c600fdf4-85fd-4179-915b-0663b7072ca1" alt=""/>
+                <div>
+                  <div class="cat-label">Leaks (Others)</div>
+                  <div class="cat-amount">$90</div>
+                  <div class="cat-pct">8% of total</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- AI Insight panel -->
+            <div class="ai-panel" style="top:518px">
+              <div class="ai-panel-row">
+                <div class="ai-blue-circle">
+                  <img src="https://www.figma.com/api/mcp/asset/0331cdd4-9d3b-45ef-bb4c-f467a6b1a835" alt=""/>
+                </div>
+                <div>
+                  <div class="ai-panel-title">AI Insight</div>
+                  <div class="ai-panel-text">Dining expenses are 35% higher than last month. Consider setting a budget limit to optimize your spending.</div>
+                </div>
+              </div>
+              <button class="budget-btn">
+                <span>Set Budget Limits</span>
+                <img src="https://www.figma.com/api/mcp/asset/d73676ef-273b-4365-815b-ae574acfad18" alt=""/>
+              </button>
+            </div>
+          </div>
+
+          <!-- Bills -->
+          <div class="bills-box">
+            <div class="bills-icon-row">
+              <img class="bills-icon"
+                src="https://www.figma.com/api/mcp/asset/723015f2-670e-478a-b0d9-238904580ffa" alt=""/>
+              <div class="bills-amount">$1,231 </div>
+              <div class="bills-sub">due across 5 bills</div>
+            </div>
+            <div class="bills-desc">
+              You have $150 in late fees for building up. Paying all your bills takes 2 minutes and clears everything in one shot. Try Bill Review Day today!
+            </div>
+            <button class="bills-btn">
+              <span>REVIEW &amp; PAY ALL BILLS</span>
+              <img src="https://www.figma.com/api/mcp/asset/3cdd491f-46d8-4b78-bf9c-64c9d32100be" alt=""/>
+            </button>
+            <div class="bills-badge">2 overdue</div>
+          </div>
+
+          <!-- 3 Months Rewind -->
+          <div class="rewind-card">
+            <div class="rewind-bg-base"></div>
+            <div class="rewind-bg-img">
+              <img src="https://www.figma.com/api/mcp/asset/765bcc4b-0dc6-418c-b97e-0f6d79c837d0" alt=""/>
+            </div>
+            <div class="rewind-period">Dec - Feb</div>
+            <div class="rewind-tag">3 MONTHS REWIND</div>
+            <div class="rewind-confetti">
+              <img src="https://www.figma.com/api/mcp/asset/f8cac378-ed4d-44bb-af21-1e9ccee795f6" alt=""/>
+            </div>
+            <div class="rewind-saved-label">You saved</div>
+            <div class="rewind-amount">$4,820</div>
+            <div class="rewind-sub">$200 more than your goal. Great Progress!</div>
+            <!-- Stat tiles -->
+            <div class="rewind-stat" style="left:24px">
+              <div class="rewind-stat-val">18</div>
+              <div class="rewind-stat-label">Longest Streak</div>
+            </div>
+            <div class="rewind-stat" style="left:133px">
+              <div class="rewind-stat-val">February</div>
+              <div class="rewind-stat-label">Best Month</div>
+            </div>
+            <div class="rewind-stat" style="left:242px">
+              <div class="rewind-stat-val">$1240</div>
+              <div class="rewind-stat-label">Debt closed</div>
+            </div>
+            <!-- CTA -->
+            <div class="rewind-cta-bg"></div>
+            <div class="rewind-cta-text">See full 3 months Progress</div>
+            <div class="rewind-cta-icon">
+              <img src="https://www.figma.com/api/mcp/asset/3333d08f-f8c7-4d89-bac6-06cc4cd78bc4" alt=""/>
+            </div>
+          </div>
+
+          <div class="bottom-spacer"></div>
+        </div><!-- /tabContent0 -->
+
+        <!-- Goals tab (placeholder) -->
+        <div id="tabContent1" style="display:none;padding:40px 16px;text-align:center;color:#8a96b0">
+          <div style="font-size:32px;margin-bottom:12px">🎯</div>
+          <div style="font-size:16px;font-weight:600;color:#0a1629">Goals</div>
+          <div style="font-size:13px;margin-top:4px">Coming soon</div>
+        </div>
+
+        <!-- Wellness tab (placeholder) -->
+        <div id="tabContent2" style="display:none;padding:40px 16px;text-align:center;color:#8a96b0">
+          <div style="font-size:32px;margin-bottom:12px">💚</div>
+          <div style="font-size:16px;font-weight:600;color:#0a1629">Wellness</div>
+          <div style="font-size:13px;margin-top:4px">Coming soon</div>
+        </div>
+
+      </div><!-- /background white -->
+
+    </div><!-- /scroll-root -->
+
+    <!-- ═══════════════════════════════════════════════════════════
+         CASHFLOW EXPANDED OVERLAY — Figma: 1591:9303
+         Covers: top:44px (below status bar) → bottom:99px (above nav)
+         Includes user profile + CF header + scrollable dark chart
+         ═══════════════════════════════════════════════════════════ -->
+    <div class="cf-overlay" id="cfOverlay">
+
+      <!-- ① User profile — same as scroll-root version -->
+      <div class="user-profile" style="flex-shrink:0">
+        <div class="user-row">
+          <div class="user-name">Hey, Alex! 👋</div>
+          <button class="user-notif-btn">
+            <img src="https://www.figma.com/api/mcp/asset/07993774-edbf-4f0d-89ac-af420a7f7e7e" alt="notification"/>
+            <img src="https://www.figma.com/api/mcp/asset/7f5defc2-65b2-420c-8d03-02463c0b2c06"
+              alt="" style="position:absolute;top:8px;right:0;width:8px;height:8px"/>
+          </button>
+          <div class="user-avatar">
+            <img src="https://www.figma.com/api/mcp/asset/4769cd81-f6fe-4bd0-a063-372c596e3b7a" alt="avatar"/>
+          </div>
+        </div>
+        <div class="expense-row">
+          <span class="expense-text">Your expense for today is <strong>$45</strong></span>
+          <img src="https://www.figma.com/api/mcp/asset/ff8c8aa8-f2fa-48ae-9822-2b82e600c81b" alt="" style="width:20px;height:20px"/>
+        </div>
+      </div>
+
+      <!-- ② CF header row (Net Wealth + chart-close btn) -->
+      <div class="cf-ov-header" style="flex-shrink:0">
+        <div class="cf-info">
+          <div class="cf-label">Net Wealth</div>
+          <div class="cf-amount">$1,23,850</div>
+          <div class="cf-trend">
+            <span style="display:inline-flex;align-items:center;transform:rotate(-90deg);font-size:12px;line-height:1">→</span>
+            <span>$3,210 this month</span>
+          </div>
+        </div>
+        <button class="cf-chart-btn" id="cfCollapseBtn">
+          <svg width="50" height="50" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="25" cy="25" r="24.5" fill="white" stroke="#AEC1ED" stroke-width="1"/>
+            <line x1="11" y1="13" x2="11" y2="37" stroke="#003CC8" stroke-width="3" stroke-linecap="round"/>
+            <path d="M14 19 C18.3 19 26 19.4 27.4 22.3 C29.1 25.7 34.6 28 38 28" stroke="#AAC3FF" stroke-width="5" stroke-linecap="round" fill="none"/>
+            <path d="M14 21 C18.3 21 24.5 21.3 27.4 25 C30.5 28.8 34.6 32 38 32" stroke="#003CC8" stroke-width="4" stroke-linecap="round" fill="none"/>
+            <line x1="39" y1="14" x2="39" y2="23" stroke="#003CC8" stroke-width="3" stroke-linecap="round"/>
+            <line x1="39" y1="25" x2="39" y2="37" stroke="#003CC8" stroke-width="3" stroke-linecap="round"/>
+          </svg>
+        </button>
+      </div>
+
+      <!-- ③ Dark sankey chart area — fills remaining height, no scroll -->
+      <div class="cf-ov-body" id="cfOvBody">
+        <div style="position:relative;width:402px;height:100%">
+
+          <!-- dark bg rectangle — fills entire container -->
+          <img src="https://www.figma.com/api/mcp/asset/0a00d9a7-4c0b-4458-8f50-ba1e765d9963"
+            style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" alt=""/>
+
+          <!-- gradient ellipse (proportional to container) -->
+          <img src="https://www.figma.com/api/mcp/asset/6aa91938-2d5f-4bd5-9d37-07c0edf25628"
+            style="position:absolute;left:4px;top:16%;width:81%;height:48%" alt=""/>
+
+          <!-- flow lines -->
+          <img src="https://www.figma.com/api/mcp/asset/cc454708-fe43-4890-a55e-39ebe7030bed"
+            style="position:absolute;top:9%;left:0;width:100%;height:91%;object-fit:cover;object-position:top" alt=""/>
+
+          <!-- sankey chart image — fills bulk below filter row, object-fit:contain to show full chart -->
+          <img src="https://www.figma.com/api/mcp/asset/bb5a59b2-50dd-4ecf-b524-264830d58116"
+            style="position:absolute;top:72px;left:7px;right:7px;bottom:0;width:calc(100% - 14px);height:calc(100% - 72px);object-fit:contain;object-position:top" alt=""/>
+
+          <!-- filter pill tabs at top:24 left:26 (Figma: y=24 from chart group top) -->
+          <div style="position:absolute;top:24px;left:26px;z-index:5;display:flex;align-items:center;gap:21px">
+            <button class="cf-tab-pill active" id="cfTabAll"    onclick="setCfTab('All')">All</button>
+            <button class="cf-tab-pill"        id="cfTabBal"    onclick="setCfTab('Balance')">Balance</button>
+            <button class="cf-tab-pill"        id="cfTabInv"    onclick="setCfTab('Invested')">Invested</button>
+            <button class="cf-tab-pill"        id="cfTabSpent"  onclick="setCfTab('Spent')">Spent</button>
+          </div>
+
+        </div>
+      </div><!-- /cf-ov-body -->
+
+    </div><!-- /cf-overlay -->
+
+    <!-- BOTTOM NAV (fixed at bottom of phone) -->
+    <div class="bottom-nav">
+      <div class="nav-pill-row">
+        <div class="nav-icon">
+          <img src="https://www.figma.com/api/mcp/asset/eb1e0806-9537-4a8e-a786-6c253028470c" alt="home"/>
+        </div>
+        <div class="nav-icon">
+          <img src="https://www.figma.com/api/mcp/asset/45262aff-ffb8-42d4-ad9e-aab64d3999ed" alt="notes"/>
+        </div>
+        <div class="nav-active-pill">
+          <img src="https://www.figma.com/api/mcp/asset/7cd1628e-1ed2-4a10-a8ee-522fb551f6cb" alt="plan"/>
+          <span>Plan &amp; Track</span>
+        </div>
+        <div class="nav-icon">
+          <img src="https://www.figma.com/api/mcp/asset/a1e8b355-b3a5-482e-a8b4-856712142f3e" alt="goals"/>
+        </div>
+        <div class="nav-icon">
+          <img src="https://www.figma.com/api/mcp/asset/695c573f-d7f5-41aa-8c94-36205816cab2" alt="settings"/>
+        </div>
+      </div>
+      <div class="home-indicator"></div>
+    </div>
+
+  </div><!-- /phone -->
+</div><!-- /app -->
+
+<script>
+  // ── Page tab switching (Cashflow / Goals / Wellness) ──────────────────────
+  function switchTab(idx) {
+    [0,1,2].forEach(i => {
+      document.getElementById('tab'+i).className = 'tab-item ' + (i===idx?'active':'inactive');
+      document.getElementById('tabContent'+i).style.display = i===idx ? '' : 'none';
+    });
+  }
+
+  // ── CashFlow expand → show overlay ────────────────────────────────────────
+  document.getElementById('cfExpandBtn').addEventListener('click', function() {
+    const ov = document.getElementById('cfOverlay');
+    ov.classList.remove('closing');
+    // Force reflow so re-opening after closing re-triggers the animation
+    void ov.offsetWidth;
+    ov.classList.add('open');
+  });
+
+  // ── CashFlow collapse → hide overlay ──────────────────────────────────────
+  document.getElementById('cfCollapseBtn').addEventListener('click', function() {
+    const ov = document.getElementById('cfOverlay');
+    ov.classList.add('closing');
+    ov.addEventListener('animationend', function handler(e) {
+      if (e.animationName === 'sheetCollapse') {
+        ov.classList.remove('open', 'closing');
+        ov.removeEventListener('animationend', handler);
+      }
+    });
+  });
+
+  // ── Chart filter tabs (All / Balance / Invested / Spent) ──────────────────
+  function setCfTab(name) {
+    ['All','Bal','Inv','Spent'].forEach(id => {
+      const el = document.getElementById('cfTab'+id);
+      if(el) el.classList.remove('active');
+    });
+    const map = {All:'All', Balance:'Bal', Invested:'Inv', Spent:'Spent'};
+    const el = document.getElementById('cfTab'+(map[name]||name));
+    if(el) el.classList.add('active');
+  }
+</script>
+</body>
+</html>
