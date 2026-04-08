@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git clone:*)",
+      "Bash(find \"C:\\\\Users\\\\2434152\\\\OneDrive - Cognizant\\\\Documents\\\\MCP Playground\\\\P&T USB\\\\claude-talk-to-figma-mcp\" -type f -name \"*.md\" -o -name \"*.json\")",
+      "Bash(find \"C:\\\\Users\\\\2434152\\\\OneDrive - Cognizant\\\\Documents\\\\MCP Playground\\\\P&T USB\\\\claude-talk-to-figma-mcp\\\\src\" -type f -name \"*.ts\" -o -name \"*.js\")",
+      "Bash(netstat -ano)",
+      "mcp__plugin_figma_figma__get_design_context",
+      "Bash(node -e \":*)",
+      "Bash(ls \"c:/Users/2434152/OneDrive - Cognizant/Documents/MCP Playground/P&T USB/\")"
+    ]
+  }
+}
